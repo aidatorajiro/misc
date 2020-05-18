@@ -28,11 +28,3 @@ def bic(xs, ys, pred, sigma, k):
   b = 1/(2*(sigma**2))*sum((ys - pred)**2)
   c = ((k + 1)/2)*np.log(n)
   return a+b+c
-
-#dat = np.loadtxt(fname="polyreg.csv", delimiter=",")
-#bic_iter_k(dat[:,0], dat[:,1], 10)
-
-#dat = np.loadtxt(fname="data5.csv", delimiter=",")
-#for i in [[0],[1],[0,1]]:
-#  n = 150
-#  print(bic_for_index(dat[:n, 1:], dat[:n, 0], i))
