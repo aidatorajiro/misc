@@ -83,5 +83,13 @@ def calculate_weight(data, k):
   mat_coeff[-1,-1] -= coeff_mu**2
   return gaussian_integral(mat_coeff + mat_line)
 
-for prob_k in range(mink, maxk + 1):
-  print("k = %s weight: %s" % (prob_k, calculate_weight(data, prob_k)))
+weights = []
+
+for current_k in range(mink, maxk + 1):
+  w = calculate_weight(data, current_k)
+  weights.append(w)
+  print("k = %s weight: %s" % (current_k, w))
+
+predict_k = np.array(weights).argmax() + mink
+
+print("predict k = %s" % predict_k)
