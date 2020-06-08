@@ -4,7 +4,7 @@ import random
 import numpy as np
 
 mink = 2
-maxk = 10
+maxk = 20
 
 coeff_mu = 0
 coeff_sigma = 1
@@ -60,7 +60,7 @@ def gaussian_integral(mat):
     out *= np.sqrt(-np.pi/left)
     tmp[1:,1:] += -square(right)/(4*left)
     tmp = tmp[1:,1:]
-  return out * np.exp(tmp[0,0])
+  return np.log(out) + tmp[0,0]
 
 import scipy.integrate
 
