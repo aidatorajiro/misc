@@ -37,7 +37,8 @@ for i in range(30):
 
 data = np.array(data)
 
-# calculate (a_1x_1 + a_2x_2 + ...)^2 as a matrix
+# Calculate (a_1x_1 + a_2x_2 + ...)^2 as a matrix
+# The formula above is represented as [a_1, a_2, ...] in a numpy array
 def square(arr):
   n = len(arr)
   mat = np.zeros((n, n))
@@ -49,18 +50,18 @@ def square(arr):
         mat[j,i] = arr[i]*arr[j]*2
   return mat
 
-# calculate gaussian integral for exp(polynomial represented by given matrix)
+# Calculate gaussian integral for exp(A), where A is the polynomial represented by the given matrix.
 def gaussian_integral(mat):
   n = len(mat)
   tmp = mat
-  out = 1
+  out = 0
   for i in range(n-1):
     left = tmp[0,0]
     right = tmp[0,1:]
-    out *= np.sqrt(-np.pi/left)
+    out += np.log(np.sqrt(-np.pi/left))
     tmp[1:,1:] += -square(right)/(4*left)
     tmp = tmp[1:,1:]
-  return np.log(out) + tmp[0,0]
+  return out + tmp[0,0]
 
 import scipy.integrate
 
