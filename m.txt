@@ -1,0 +1,32 @@
+p(y1..yn)p(b0..bk)
+
+=
+
+(1/sqrt(2*pi*sigma_offset**2))*exp(((y1 - (b0 + b1x1 + b2x1**2 + ... + bkx1**k))**2)/(2*sigma_offset**2))*
+...
+(1/sqrt(2*pi*sigma_offset**2))*exp(((y1 - (b0 + b1xn + b2xn**2 + ... + bkxn**k))**2)/(2*sigma_offset**2))*
+(1/sqrt(2*pi*sigma_coeff**2))*exp(((b0 - mu_coeff)**2)/(2*sigma_coeff**2))*
+...
+(1/sqrt(2*pi*sigma_coeff**2))*exp(((bn - mu_coeff)**2)/(2*sigma_coeff**2))
+
+=
+
+(1/sqrt(2*pi*sigma_offset**2))**n *
+(1/sqrt(2*pi*sigma_coeff**2))**n *
+exp(
+  (
+    -(y1 - (b0 + b1x1 + b2x1**2 + ... + bkx1**k))**2+
+    ...
+    -(yn - (b0 + b1xn + b2xn**2 + ... + bkxn**k))**2
+  )/(2*sigma_offset**2)+
+  (
+    -(b0 - mu_coeff)**2+    # -b0**2 +2*b0*mu_coeff -mu_coeff**2
+    ...
+    -(bk - mu_coeff)**2
+  )/(2*sigma_coeff**2)
+)
+
+
+
+
+(ax**2 + bx) = (a(x + b/(2a))**2 - b**2/(4a)) ->integral-> sqrt(-pi/a)*exp(-b**2/(4a))
