@@ -50,7 +50,7 @@ def square(arr):
         mat[j,i] = arr[i]*arr[j]*2
   return mat
 
-# Calculate gaussian integral for exp(A), where A is the polynomial represented by the given matrix.
+# Calculate gaussian integral for exp(A), where A is the polynomial represented as the given matrix.
 def gaussian_integral(mat):
   n = len(mat)
   tmp = mat
