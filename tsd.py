@@ -1,11 +1,12 @@
 ## general purpose ts donwloader
 
+import re, base64, json
+
 with open("in.har") as f:
     data = f.read()
 
 prs = json.loads(data)
 
-import re, base64
 
 streams = []
 
