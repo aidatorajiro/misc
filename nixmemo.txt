@@ -1,0 +1,53 @@
+# default.nix
+{ system ? builtins.currentSystem }:
+(import ./reflex-platform { inherit system; }).project ({ pkgs, ... }: {
+  packages = {
+    frontend = ./frontend;
+  };
+
+  shells = {
+    ghc = [];
+    ghcjs = ["frontend"];
+  };
+})
+
+nix-build -A ghcjs.frontend --option extra-binary-caches https://nixcache.reflex-frp.org --option binary-cache-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
+
+echo "import time\nt = time.time()\nwhile True:\n    try:\n        j = input()\n        t2 = time.time()\n        if t2 - t > 1:\n            print(j)\n            t = t2\n    except EOFError:\n        break" > temp.py
+command 2>&1 | python temp.py
+
+nix-build -E '(import ./reflex-platform {}).ghcjs.callPackage ./. {}' --option extra-binary-caches https://nixcache.reflex-frp.org --option trusted-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
+
+nix-build --option extra-binary-caches https://nixcache.reflex-frp.org --option trusted-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
+
+nix-build -A ghcjs.frontend --option extra-binary-caches https://nixcache.reflex-frp.org --option trusted-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
+
+nix-build -E '(import ./reflex-platform {}).ghcjs.callPackage ./. {}' --option extra-binary-caches https://nixcache.reflex-frp.org --option trusted-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
+
+# /etc/nix/nix.conf
+binary-caches = https://cache.nixos.org https://nixcache.reflex-frp.org
+binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=
+binary-caches-parallel-connections = 40
+
+--option binary-caches "https://cache.nixos.org https://nixcache.reflex-frp.org" --option binary-cache-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" --option binary-caches-parallel-connections 40
+
+. ~/e.sh;
+
+https://github.com/WebGHC/wasm-cross
+
+https://github.com/reflex-frp/reflex-platform
+
+https://github.com/reflex-frp/reflex-todomvc
+
+https://github.com/aidatorajiro/RDWP
+
+# wasm-cross
+nix-build release.nix -A examples.wasm.reflex-todomvc --option binary-caches "https://cache.nixos.org https://nixcache.reflex-frp.org" --option binary-cache-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" --option binary-caches-parallel-connections 40
+
+# reflex-todomvc ghcjs build
+nix-build release.nix -A x86_64-linux.ghcjs --option binary-caches "https://cache.nixos.org https://nixcache.reflex-frp.org" --option binary-cache-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" --option binary-caches-parallel-connections 40
+
+# reflex-todomvc wasm build
+nix-build release.nix -A x86_64-linux.wasm --option binary-caches "https://cache.nixos.org https://nixcache.reflex-frp.org" --option binary-cache-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" --option binary-caches-parallel-connections 40
+
+nix-build -A ghcjs.RDWP --option binary-caches "https://cache.nixos.org https://nixcache.reflex-frp.org" --option binary-cache-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" --option binary-caches-parallel-connections 40
