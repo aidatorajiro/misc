@@ -1,7 +1,7 @@
-data Inverses = Inverse Integer | TOT
+data Inverses = Inverse Integer | TOT deriving Show
 
-egyptDiv :: Integer -> Integer -> (Integer, [Integer])
-egyptDiv m n =
+egyptDivU :: Integer -> Integer -> (Integer, [Integer])
+egyptDivU m n =
     let doubles = takeWhile (<= m) $ iterate (*2) n
         choices = foldr (\inp def@(pre_i, pre_l) ->
                 let nex_i = pre_i - inp
@@ -10,8 +10,13 @@ egyptDiv m n =
             ) (m, []) doubles
     in choices
 
+--egyptDivL :: Integer -> Integer -> [Inverses]
+--egyptDivL m n = 
+--    let 
+--    in snd 
+
 main :: IO ()
 main = do
     str1 <- getLine
     str2 <- getLine
-    print (egyptDiv (read str1) (read str2))
+    print (egyptDivU (read str1) (read str2))
