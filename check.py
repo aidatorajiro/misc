@@ -2,22 +2,24 @@ import re, base64, json, argparse
 
 parser = argparse.ArgumentParser(description='Check HAR file integrity.')
 
-parser.add_argument('in_filename', nargs='?', default="in.har", metavar='in', type=str, help='input HAR file. default: in.har')
+parser.add_argument('in_filename', nargs='+', default="in.har", metavar='in', type=str, help='input HAR file. default: in.har')
 parser.add_argument('num_regex', nargs='?', default=r".+/(.+?)\.ts", metavar='sort_regex', type=str, help=r'A regular expression to get numeric values to sort packets. default: .+/(.+?)\.ts')
 
 args = parser.parse_args()
 in_filename = args.in_filename
 num_regex = args.num_regex
 
-with open(in_filename) as f:
-    data = f.read()
+log_entries = []
 
-prs = json.loads(data)
+for fn in in_filename:
+    with open(fn) as f:
+        data = f.read()
+    log_entries += json.loads(data)['log']['entries']
 
 streams = []
 
-entries = list(filter(lambda x: x[0] != None,
-    [[re.match(num_regex, x['request']['url']), x] for x in prs['log']['entries']]))
+entries = list(filter(lambda x: x[0] != None and 'text' in x[1]['response']['content'],
+    [[re.match(num_regex, x['request']['url']), x] for x in log_entries]))
 
 pairs = sorted([[int(x[0][1]), x[1]] for x in entries], key=lambda x: x[0])
 
@@ -33,8 +35,3 @@ print("End = %s" % pairs_processed[-1][0])
 print("Len = %s" % len(pairs_processed))
 
 print(len(pairs_processed) == pairs_processed[-1][0] - pairs_processed[0][0] + 1)
-
-for (_, e) in pairs_processed:
-    cont = e['response']['content']
-    if not 'text' in cont:
-        print("WARNING: NO CONTENT on " + e['request']['url'])
