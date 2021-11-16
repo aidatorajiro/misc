@@ -9,7 +9,7 @@ parser.add_argument('--out', default="out.ts", metavar='out', type=str, help='ou
 parser.add_argument('--stream_regex', default=r".+/\d+\.ts", metavar='stream_regex', type=str, help=r'A regular expression to filter packets.')
 parser.add_argument('--lensort', default=True, action=argparse.BooleanOptionalAction, help=r'Whether to use length-priority sort based on URL.')
 parser.add_argument('--sort_nodup', default=True, action=argparse.BooleanOptionalAction, help=r'Whether to take only one request by each number. Requires lensort is true.')
-parser.add_argument('--sort_regex', default=r".+/(\d+)\.ts", metavar='numsort_regex', type=str, help=r'A regular expression to get numeric values to sort packets.')
+parser.add_argument('--sort_regex', default=r".+/(\d+)\.ts", metavar='numsort_regex', type=str, help=r'A regular expression to get some part of URL to sort packets.')
 
 args = parser.parse_args()
 infiles = args.infiles
