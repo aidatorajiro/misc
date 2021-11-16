@@ -4,16 +4,16 @@ import re, base64, json, argparse
 
 parser = argparse.ArgumentParser(description='Convert a HAR file to the concatenation of the matched packets.')
 
-parser.add_argument('in_filename', nargs='+', default="in.har", metavar='in', type=str, help='input HAR file. default: in.har')
-parser.add_argument('out_filename', nargs='?', default="out.ts", metavar='out', type=str, help='output file. The content will be the concatenation of the matched packets. default: out.ts')
-parser.add_argument('stream_regex', nargs='?', default=r".+/.+?\.ts", metavar='stream_regex', type=str, help=r'A regular expression to filter packets. default: .+/.+?\.ts')
+parser.add_argument('infiles', nargs='+', default="in.har", metavar='infiles', type=str, help='input HAR file. default: in.har')
+parser.add_argument('--out', default="out.ts", metavar='out', type=str, help='output file. The content will be the concatenation of the matched packets. default: out.ts')
+parser.add_argument('--stream_regex', default=r".+/\d+\.ts", metavar='stream_regex', type=str, help=r'A regular expression to filter packets.')
 parser.add_argument('--numsort', default=True, action=argparse.BooleanOptionalAction, help=r'Whether to use numeric sort based on URL.')
 parser.add_argument('--numnodup', default=True, action=argparse.BooleanOptionalAction, help=r'Whether to take only one request by each number. Requires numsort is true.')
-parser.add_argument('numsort_regex', nargs='?', default=r".+/(.+?)\.ts", metavar='numsort_regex', type=str, help=r'A regular expression to get numeric values to sort packets. default: .+/(.+?)\.ts')
+parser.add_argument('--numsort_regex', default=r".+/(\d+)\.ts", metavar='numsort_regex', type=str, help=r'A regular expression to get numeric values to sort packets.')
 
 args = parser.parse_args()
-in_filename = args.in_filename
-out_filename = args.out_filename
+infiles = args.infiles
+out_filename = args.out
 stream_regex = args.stream_regex
 numsort = args.numsort
 numnodup = args.numnodup
@@ -21,7 +21,7 @@ numsort_regex = args.numsort_regex
 
 log_entries = []
 
-for fn in in_filename:
+for fn in infiles:
     with open(fn) as f:
         data = f.read()
     log_entries += json.loads(data)['log']['entries']
