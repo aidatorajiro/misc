@@ -1,0 +1,225 @@
+\documentclass[lualatex,a5paper,ja=standard]{bxjsarticle}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{luacode}
+\usetikzlibrary{intersections, calc, angles, quotes}
+
+
+\title{壁と物体の跳ね返りの話}
+\author{Torajiro Aida}
+
+\begin{document}
+
+\maketitle
+
+
+物体1の質量を$1$, 物体2の質量を$m$とする. $m \ge 1$とする.
+
+物体1, 物体2の速度(の数列)をそれぞれ$v_1$, $v_2$とする.
+
+物体1, 物体2の初期速度をそれぞれ$0$, $V$とする($V$は正).
+
+座標が大きい順に, 壁面, 物体1, 物体2の順に並んでいるとする. この時, 何回の衝突が発生するかを考える.
+
+物体1と物体2の衝突前後を考える. ここで運動量保存則
+\begin{equation}
+    v_1 + m v_2 = v_1' + m v_2'\label{pp}
+\end{equation}
+と完全弾性衝突
+\begin{equation}
+    v_1 - v_2 = -v_1' + v_2' \label{ep}
+\end{equation}を仮定する. これを解くと, 
+\begin{eqnarray}
+    v_1' &=& -\frac{m-1}{m+1}v_1 + \frac{2}{m+1} v_2 \\
+    v_2' &=& \frac{2}{m+1} v_1 + \frac{m-1}{m+1} v_2
+\end{eqnarray}
+となる.
+
+$\alpha = \frac{m-1}{m+1}$, $\beta = \frac{2}{m+1}$とする.
+ここで, 物体1が物体2とぶつかり, その後, 壁にぶつかり跳ね返ったとする場合の変換
+\begin{equation}
+\begin{pmatrix}
+    v_{1_{n+1}}\\
+    v_{2_{n+1}}
+\end{pmatrix}
+    =
+\begin{pmatrix}
+    \alpha & -\beta m\\
+    \beta & \alpha
+\end{pmatrix}
+\begin{pmatrix}
+    v_{1_{n}}\\
+    v_{2_{n}}
+\end{pmatrix}
+\end{equation}
+を考える. ここで, この行列の行列式は, 
+\begin{equation}
+    \alpha^2 + m\beta^2 = 1  \label{det}
+\end{equation}
+である.
+
+この変換を初期状態からn回繰り返すと, 
+\begin{equation}
+    \begin{pmatrix}
+        v_{1_n}\\
+        v_{2_n}
+    \end{pmatrix}
+        =
+    \begin{pmatrix}
+        \alpha & -\beta m\\
+        \beta & \alpha
+    \end{pmatrix}^n
+    \begin{pmatrix}
+        0\\
+        V
+    \end{pmatrix}
+\end{equation}
+となる. この行列を, その固有値$\lambda_1 = \alpha + \beta \sqrt{m} i$と$\lambda_2 = \alpha - \beta \sqrt{m} i$を使って対角化すると, 
+\begin{equation}
+\begin{pmatrix}
+    \alpha & -\beta m\\
+    \beta & \alpha
+\end{pmatrix}=\frac{1}{2\sqrt{m}i}\begin{pmatrix}
+    \sqrt{m}i & -\sqrt{m}i\\
+    1 & 1
+\end{pmatrix}\begin{pmatrix}
+    \lambda_1 & 0 \\
+    0 & \lambda_2 \\
+\end{pmatrix}\begin{pmatrix}
+    1 & \sqrt{m}i\\
+    -1 & \sqrt{m}i
+\end{pmatrix}
+\end{equation}を得る. 従って, 
+\begin{eqnarray}
+    \begin{pmatrix}
+        v_{1_n}\\
+        v_{2_n}
+    \end{pmatrix}
+        &=&
+        \frac{1}{2\sqrt{m}i}\begin{pmatrix}
+            \sqrt{m}i & -\sqrt{m}i\\
+            1 & 1
+        \end{pmatrix}\begin{pmatrix}
+            \lambda_1 & 0 \\
+            0 & \lambda_2 \\
+        \end{pmatrix}^n\begin{pmatrix}
+            1 & \sqrt{m}i\\
+            -1 & \sqrt{m}i
+        \end{pmatrix}\begin{pmatrix}
+            0\\
+            V
+        \end{pmatrix}\\
+        &=&
+        \frac{1}{2\sqrt{m}i}\begin{pmatrix}
+            \sqrt{m}i & -\sqrt{m}i\\
+            1 & 1
+        \end{pmatrix}\begin{pmatrix}
+            \lambda_1^n V\sqrt{m}i \\
+            \lambda_2^n V\sqrt{m}i \\
+        \end{pmatrix}\\
+        &=&
+        \frac{1}{2}V\begin{pmatrix}
+            \sqrt{m}(\lambda_1^n-\lambda_2^n)i \\
+            \lambda_1^n+\lambda_2^n \\
+        \end{pmatrix}
+\end{eqnarray}
+
+ここで, (\ref{det})より, ある$\theta$が存在して, $\alpha = \cos \theta, \beta = \frac{1}{\sqrt{m}} \sin \theta$となる.
+また, $\lambda_1 = e^{i\theta}, \lambda_2 = e^{-i\theta}$となる. よって, 
+\begin{eqnarray}
+    \begin{pmatrix}
+        v_{1_n}\\
+        v_{2_n}
+    \end{pmatrix}
+    &=&
+    \frac{1}{2}V\begin{pmatrix}
+        \sqrt{m}(2i\sin(n\theta))i \\
+        2\cos(n\theta) \\
+    \end{pmatrix}\\
+        &=&
+        \begin{pmatrix}
+            -\sqrt{m}V\sin(n\theta) \\
+            V\cos(n\theta) \\
+        \end{pmatrix} \label{res1}
+\end{eqnarray}
+
+$m \ge 1$より, $0 < \theta \le \frac{\pi}{2}$. 物体1が物体2とn回衝突した後, もう二度と衝突しない条件は, $v_{2_n} < 0$かつ$|v_{2_n}| \ge |v_{1_n}|$.
+
+xy座標上の点$(\cos(n\theta), \sin(n\theta))$を考える. $v_1 = -\sqrt{m}V\sin(n\theta) = -\sqrt{m}Vy$, $v_2 = V\cos(n\theta) = Vx$だから, 先程の条件は$|x|<0$かつ$\frac{1}{\sqrt{m}} |x| \ge |y|$と表せる.
+$\frac{1}{\sqrt{m}} x = y$と$x^2 + y^2 = 1$の交点の一つは$x=\sqrt{\frac{m}{m+1}}$であるが, この2倍角に対応するx座標は, $x=\alpha$となる. 従って, $\pm\frac{1}{\sqrt{m}} x = y$の間の角度は$\theta$である.
+
+以上を図で示すと, 以下のようになる.
+
+\begin{luacode*}
+    m=10
+    xs={}
+    ys={}
+    th=math.acos((m-1)/(m+1))
+    for n = 1, 10 do
+        xs[n]=math.cos(n*th)
+        ys[n]=math.sin(n*th)
+    end
+    line = 1.5/math.sqrt(m)
+
+    t1x = math.cos(math.pi-th/2)
+    t1y = math.sin(math.pi-th/2)
+    t2x = math.cos(math.pi+th/2)
+    t2y = math.sin(math.pi+th/2)
+
+    as=180 - th * 360 / (2 * math.pi) / 2
+    ae=180 + th * 360 / (2 * math.pi) / 2
+
+    tr = th * 360 / (2 * math.pi)
+\end{luacode*}
+
+\begin{center}
+    \begin{tikzpicture}[x=2cm,y=2cm]
+        \coordinate (O) at (0,0);
+        \draw [thick, -stealth](-1.5,0)--(1.5,0) node [anchor=north]{x};
+        \draw [thick, -stealth](0,-1.5)--(0,1.5) node [anchor=east]{y};
+        \draw (O) circle [radius=1];
+        \coordinate (L0) at (1, 0);
+        \coordinate (L1) at (\directlua{tex.sprint(xs[1])},\directlua{tex.sprint(ys[1])});
+        \coordinate (L2) at (\directlua{tex.sprint(xs[2])},\directlua{tex.sprint(ys[2])});
+        \coordinate (L3) at (\directlua{tex.sprint(xs[3])},\directlua{tex.sprint(ys[3])});
+        \coordinate (L4) at (\directlua{tex.sprint(xs[4])},\directlua{tex.sprint(ys[4])});
+        \coordinate (L5) at (\directlua{tex.sprint(xs[5])},\directlua{tex.sprint(ys[5])});
+        \fill (L1) circle [radius=2pt];
+        \draw (0, 0) -- (L1) node [anchor=south]{$\theta$};
+        \fill (L2) circle [radius=2pt];
+        \draw (0, 0) -- (L2) node [anchor=south]{$2\theta$};
+        \fill (L3) circle [radius=2pt];
+        \draw (0, 0) -- (L3) node [anchor=south]{$3\theta$};
+        \fill (L4) circle [radius=2pt];
+        \draw (0, 0) -- (L4) node [anchor=south]{$4\theta$};
+        \fill (L5) circle [radius=2pt];
+        \draw (0, 0) -- (L5) node [anchor=south]{$5\theta$};
+        \draw [dashed] (0, 0) -- (-1.5, \directlua{tex.sprint(line)}) node [anchor=south]{$y=-\frac{1}{\sqrt{m}}x$};
+        \draw [dashed] (0, 0) -- (-1.5, -\directlua{tex.sprint(line)}) node [anchor=north]{$y=\frac{1}{\sqrt{m}}x$};
+
+        \coordinate (T1) at (\directlua{tex.sprint(t1x)}, \directlua{tex.sprint(t1y)});
+        \coordinate (T2) at (\directlua{tex.sprint(t2x)}, \directlua{tex.sprint(t2y)});
+
+        \draw pic[draw=black, "$\theta$", thick, angle eccentricity=1.2, angle radius=0.8cm] {angle=L0--O--L1};
+
+        \fill [fill=blue, opacity=.5] (0, 0) -- (T1) arc (\directlua{tex.sprint(as)}:\directlua{tex.sprint(ae)}:1) -- cycle;
+    \end{tikzpicture}
+\end{center}
+
+物体1と物体2がn回衝突した後, $v_1$と$v_2$に対応する点$(\cos(n\theta), \sin(n\theta))$が青色の領域に入っていた場合, 二度と物体1と物体2が衝突することはない.
+このとき, $\sin(n\theta)>0$の場合は, 物体1はその後壁に衝突する. いっぽうで$\sin(n\theta)<0$の場合は, 壁に衝突せず, 壁から遠ざかる方向(すなわち負の方向)に等速直線運動する.
+
+従って, 壁との衝突回数も含めた合計の衝突回数は,
+$$n_{\mathrm{total}} = 2\lceil \frac{\pi - \frac{\theta}{2}}{\theta} \rceil - \begin{cases}
+    1\quad\mathrm{(最後に壁に衝突しない場合)}\\
+    0\quad\mathrm{(最後に壁に衝突する場合)}
+\end{cases}$$
+と表せる.
+
+ここで, $m \rightarrow \infty$のとき, $\theta \rightarrow 0$であり, $\frac{2\sqrt{m}}{m+1} = \sin\theta$,  $ \sin\theta\rightarrow \theta$, $\frac{2\sqrt{m}}{m+1} \rightarrow \frac{2}{\sqrt{m}}$. したがって,
+$$\frac{n_{\mathrm{total}}}{\sqrt{m}} \rightarrow \pi$$
+
+\end{document}
