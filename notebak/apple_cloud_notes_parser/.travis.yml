@@ -1,0 +1,20 @@
+language: ruby
+
+os:
+  - linux
+  - osx
+
+rvm:
+  - "2.3.0"
+  - "2.3.1"
+  - "2.4.3"
+  - "2.5.1"
+  - "2.6.5"
+  - "2.7.1"
+
+jobs:
+  exclude:
+    - os: osx
+      rvm: 2.3.0
+    - os: osx
+      rvm: 2.3.1
