@@ -1,0 +1,89 @@
+* convert pdf to img
+
+convert -density 200 in.pdf out.png
+
+find . -name "*.png" -exec tesseract {} {} -l eng+jpn pdf \;
+
+find . -name "*.pdf" | sort -nk2 -t- | gxargs -d '\n' sh -c 'pdfunite "$@" unite.pdf'
+
+* pdf unite all
+find . -name "*.pdf" | gxargs -d '\n' sh -c 'pdfunite "$@" unite.pdf'
+
+ls -tr | gxargs -d '\n' sh -c 'pdfunite "$@" unite.pdf'
+
+* Note Store locations
+
+/Users/$USER/Library/Containers/com.apple.Notes
+/Users/$USER/Library/Group\ Containers/group.com.apple.notes
+
+
+* openssl x509
+
+openssl x509 -in cert.cer -inform DER
+ln -s CA.pem `openssl x509 -in CA.pem -hash -noout`.0
+find . -exec sh -c 'ln -s {} `openssl x509 -in {} -hash -noout`.0' \;
+
+* openssl ts
+
+openssl ts -query -cert -data /path/to/file -out query1
+
+curl -H 'Content-Type: application/timestamp-query' --data-binary @query1 -o resp1 https://freetsa.org/tsr
+openssl ts -verify -CAfile capath/cacert.pem -in resp1 -queryfile query1
+openssl ts -verify -CApath capath -in resp1 -queryfile query1
+
+curl -H 'Content-Type: application/timestamp-query' --data-binary @query1 -o resp2 http://timestamp.apple.com/ts01
+openssl ts -verify -CAfile capath/AppleIncRootCertificate.pem -untrusted capath/AppleTimestampCA.cer -in resp2 -queryfile query1
+openssl ts -verify -CApath capath -in resp2 -queryfile query1
+
+curl -H 'Content-Type: application/timestamp-query' --data-binary @query1 -o resp3 http://ts.ssl.com
+openssl ts -verify -CAfile capath/SSLcomRootCertificationAuthorityRSA.pem -untrusted capath/SSL.com-timeStamping-I-RSA-R1.pem -in resp3 -queryfile query1
+openssl ts -verify -CApath capath -in resp3 -queryfile query1
+
+curl -H 'Content-Type: application/timestamp-query' --data-binary @query1 -o resp4 http://timestamp.digicert.com
+openssl ts -verify -CAfile capath/DigiCertAssuredIDRootCA_comb.crt.pem -in resp4 -queryfile query1
+openssl ts -verify -CApath capath -in resp4 -queryfile query1
+
+-----
+
+openssl ts -verify -CAfile /path/to/cacert.pem -untrusted /path/to/tsa.crt -in resp1 -queryfile query1
+
+
+-----
+
+RFC3161 https://www.ipa.go.jp/security/rfc/RFC3161JA.html
+
+https://www.apple.com/certificateauthority/
+
+https://knowledge.digicert.com/generalinformation/INFO4231.html
+
+https://gist.github.com/Manouchehri/fd754e402d98430243455713efada710
+
+openssl ts -verify -in resp1 -queryfile query1
+
+* slapd
+
+slapd up
+
+mkdir /usr/local/etc/slapd.d
+/usr/local/opt/openldap/sbin/slapadd -n 0 -F /usr/local/etc/slapd.d -l /usr/local/etc/openldap/slapd.ldif
+/usr/local/opt/openldap/libexec/slapd  -F /usr/local/etc/slapd.d
+SLAPD_SERVICES="ldap:/// ldapi:/// ldaps://localhost:8989/" /usr/local/opt/openldap/libexec/slapd  -F /usr/local/etc/slapd.d
+
+ldapsearch -H ldap://localhost:389 -x -b o=example "objectclass=*"
+
+ldapむずいよ。。。。。ぜんぜんlightweightじゃないよお。。。。
+
+* remove all quarantine attribute
+xattr -rd com.apple.quarantine ./
+
+* suspend (windows?)
+
+[System.Windows.Forms.Application]::SetSuspendState([System.Windows.Forms.PowerState]::Suspend, $false, $false);
+
+* benkyo
+
+import random
+a = ["英語", "数学", "国語", "生物", "物理"]
+print(random.sample(a, k=2))
+
+
