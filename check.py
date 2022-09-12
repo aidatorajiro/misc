@@ -3,7 +3,7 @@ import re, base64, json, argparse
 parser = argparse.ArgumentParser(description='Check HAR file integrity.')
 
 parser.add_argument('in_filename', nargs='+', default="in.har", metavar='in', type=str, help='input HAR file. default: in.har')
-parser.add_argument('regex', nargs='?', default=r".+/(\d+)\.ts", metavar='sort_regex', type=str, help=r'A regular expression to obtain some part of URL and sort packets.')
+parser.add_argument('--regex', nargs='?', default=r".+/(\d+)\.ts", metavar='sort_regex', type=str, help=r'A regular expression to obtain some part of URL and sort packets.')
 
 args = parser.parse_args()
 in_filename = args.in_filename
