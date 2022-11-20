@@ -444,3 +444,6 @@ TSWLatexianTemp*
 *.lpz
 
 
+.idea
+
+bridges.txt
