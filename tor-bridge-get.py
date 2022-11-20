@@ -22,7 +22,7 @@ class Madoka(QWidget):
         self.webview.page().runJavaScript("document.getElementById('bridgelines').innerText", self.retrieve_bridges)
 
     def retrieve_bridges(self, arg):
-        if arg != None:
+        if arg is not None:
             with open("bridges.txt", "w") as f:
                 f.write(arg)
             self.close()
