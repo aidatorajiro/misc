@@ -446,4 +446,7 @@ TSWLatexianTemp*
 
 .idea
 
+*.ots
+
+
 bridges.txt
