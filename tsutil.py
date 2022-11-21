@@ -1,10 +1,11 @@
+import base64
 import datetime
 import struct
 import sys
 
 import bitcoin.rpc
 import requests
-from PyQt6.QtCore import QUrl, QTimer
+from PyQt6.QtCore import QUrl, QTimer, QRunnable, pyqtSlot, QObject, pyqtSignal, QThreadPool
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QFileDialog, QPushButton, QVBoxLayout, QDialog
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 import otsclient.args
@@ -18,65 +19,43 @@ from opentimestamps.core.serialize import StreamDeserializationContext, Deserial
 from opentimestamps.core.timestamp import DetachedTimestampFile
 from otsclient.cmds import upgrade_timestamp
 
+class WorkerSignals(QObject):
+    error = pyqtSignal(tuple)
+    success = pyqtSignal(tuple)
 
-class MainWindow(QWidget):
-    def __init__(self):
-        super().__init__()
+class VerifyWorker(QRunnable):
+    def __init__(self, orig_file, ots_file):
+        super(VerifyWorker, self).__init__()
+        self.orig_file = orig_file
+        self.ots_file = ots_file
+        self.signals = WorkerSignals()
 
-        self.vbox = QVBoxLayout()
-
-        btn = QPushButton("Stamp")
-        btn.setFixedHeight(50)
-        btn.clicked.connect(self.stamp)
-        self.vbox.addWidget(btn)
-
-        btn = QPushButton("Verify")
-        btn.setFixedHeight(50)
-        btn.clicked.connect(self.verify)
-        self.vbox.addWidget(btn)
-
-        btn = QPushButton("Batch Verify")
-        btn.setFixedHeight(50)
-        btn.clicked.connect(self.batch_verify)
-        self.vbox.addWidget(btn)
-
-        self.setLayout(self.vbox)
-
-    def stamp(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file', os.path.abspath(os.path.dirname(__file__)))
-        if os.path.exists(fname[0] + ".ots"):
-            self.showMessage("Error: .ots file already exists")
-            return
-        res = subprocess.run(["ots", "s", fname[0]], capture_output=True)
-        if res.returncode == 1:
-            self.showMessage("Unknown Error Occurred. Error Log: " + res.stderr.decode())
-        else:
-            self.showMessage("Successfully stamped the file")
-
-    def verify(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file', os.path.abspath(os.path.dirname(__file__)))
-
-        orig_file = os.path.abspath(fname[0])
-        ots_file = orig_file + ".ots"
+    @pyqtSlot()
+    def run(self):
+        ots_file = self.ots_file
+        orig_file = self.orig_file
 
         if not os.path.exists(ots_file):
-            self.showMessage("Error: .ots file doesn't exist")
+            self.signals.error.emit((".ots file doesn't exist", ots_file))
             return
 
         with open(ots_file, 'rb') as ots_fd:
             ctx = StreamDeserializationContext(ots_fd)
             try:
                 detached_timestamp = DetachedTimestampFile.deserialize(ctx)
-            except BadMagicError:
-                self.showMessage("Error: not an ots file")
-            except DeserializationError:
-                self.showMessage("Error: ots file deserialization error")
+            except BadMagicError as e:
+                self.signals.error.emit(("not an ots file", e))
+                return
+            except DeserializationError as e:
+                self.signals.error.emit(("ots file deserialization error", e))
+                return
 
             with open(orig_file, 'rb') as orig_fd:
                 orig_digest = detached_timestamp.file_hash_op.hash_fd(orig_fd)
 
             if orig_digest != detached_timestamp.file_digest:
-                self.showMessage("Error: digest mismatch")
+                self.signals.error.emit(("digest mismatch", (orig_digest, detached_timestamp.file_digest)))
+                return
 
         timestamp = detached_timestamp.timestamp
 
@@ -85,64 +64,164 @@ class MainWindow(QWidget):
         args.calendar_urls = []
         upgrade_timestamp(timestamp, args)
 
-        def attestation_key(item):
-            (msg, attestation) = item
-            if attestation.__class__ == BitcoinBlockHeaderAttestation:
-                return attestation.height
-            else:
-                return 2 ** 32 - 1
-
         good = False
         unix_time = None
         block_height = None
-        proxy = None
 
-        try:
-            proxy = bitcoin.rpc.Proxy()
-        except:
-            print("Connecting Local Bitcoin Client Failed. Use blockchain.info API instead")
+        all_attestations = timestamp.all_attestations()
 
-        for merkle_root, attestation in sorted(timestamp.all_attestations(), key=attestation_key):
-            if attestation.__class__ == PendingAttestation:
-                pass
-            elif attestation.__class__ == BitcoinBlockHeaderAttestation:
-                if proxy is not None:
-                    header = proxy.getblockheader(proxy.getblockhash(attestation.height))
-                    if merkle_root == header.hashMerkleRoot:
-                        good = True
-                        unix_time = header.nTime
-                        block_height = attestation.height
-                        break
-                else:
-                    url = "https://blockchain.info/rawblock/" + str(attestation.height)
-                    block = requests.get(url).json()
-                    if "".join(map(lambda x: x.hex(), reversed(struct.unpack("32c", merkle_root)))) == block['mrkl_root']:
-                        good = True
-                        unix_time = block['time']
-                        block_height = attestation.height
-                        break
+        block_attestations = filter(lambda x: x[1].__class__ == BitcoinBlockHeaderAttestation, all_attestations)
+
+        for merkle_root, attestation in sorted(block_attestations, key=lambda x: x[1].height):
+            try:
+                proxy = bitcoin.rpc.Proxy()
+                header = proxy.getblockheader(proxy.getblockhash(attestation.height))
+                if merkle_root == header.hashMerkleRoot:
+                    good = True
+                    unix_time = header.nTime
+                    block_height = attestation.height
+                    break
+                proxy.close()
+            except Exception as e:
+                print("Connecting Local Bitcoin Client Failed. Use blockchain.info API instead. Error Log: " + str(e))
+                url = "https://blockchain.info/rawblock/" + str(attestation.height)
+                block = requests.get(url).json()
+                if "".join(map(lambda x: x.hex(), reversed(struct.unpack("32c", merkle_root)))) == block['mrkl_root']:
+                    good = True
+                    unix_time = block['time']
+                    block_height = attestation.height
+                    break
 
         if good:
-            LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+            self.signals.success.emit((unix_time, block_height))
+            return
+        else:
+            self.signals.error.emit(("verification failed.", all_attestations))
+            return
 
-            self.showMessage("Verification Success! The file existed at %s [Bitcoin Block Height %s]"
+class MainWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.main_layout = QVBoxLayout()
+
+        self.buttons = []
+
+        self.addButtons()
+
+        self.message = None
+        self.return_btn = None
+
+        self.setLayout(self.main_layout)
+
+        self.threadpool = QThreadPool()
+
+    def addButtons(self):
+        btn = QPushButton("Stamp")
+        btn.setFixedHeight(50)
+        btn.clicked.connect(self.stamp)
+        self.buttons.append(btn)
+        self.main_layout.addWidget(btn)
+
+        btn = QPushButton("Verify")
+        btn.setFixedHeight(50)
+        btn.clicked.connect(self.verify)
+        self.buttons.append(btn)
+        self.main_layout.addWidget(btn)
+
+        btn = QPushButton("Batch Verify")
+        btn.setFixedHeight(50)
+        btn.clicked.connect(self.batch_verify)
+        self.buttons.append(btn)
+        self.main_layout.addWidget(btn)
+
+    def deleteButtons(self):
+        for b in self.buttons:
+            b.deleteLater()
+            self.main_layout.removeWidget(b)
+        self.buttons = []
+
+    def addMessageField(self):
+        self.message = QLabel('')
+        self.main_layout.addWidget(self.message)
+
+    def addReturnButton(self, callback=None):
+        def default_callback():
+            self.deleteMessageField()
+            self.addButtons()
+
+        if callback is None:
+            callback = default_callback
+
+        self.return_btn = QPushButton("OK")
+        self.return_btn.setFixedHeight(50)
+        self.return_btn.clicked.connect(callback)
+        self.main_layout.addWidget(self.return_btn)
+
+    def deleteMessageField(self):
+        self.message.deleteLater()
+        self.main_layout.removeWidget(self.message)
+        self.message = None
+        self.return_btn.deleteLater()
+        self.main_layout.removeWidget(self.return_btn)
+        self.return_btn = None
+
+    def stamp(self):
+        fname = QFileDialog.getOpenFileName(self, 'Open file', os.path.abspath(os.path.dirname(__file__)))
+        if fname[0] == '':
+            self.show_message("Error: file not selected")
+            return
+        if os.path.exists(fname[0] + ".ots"):
+            self.show_message("Error: .ots file already exists")
+            return
+        res = subprocess.run(["ots", "s", fname[0]], capture_output=True)
+        if res.returncode == 1:
+            self.show_message("Unknown Error Occurred. Error Log: " + res.stderr.decode())
+            return
+        else:
+            self.show_message("Successfully stamped the file")
+            return
+
+    def verify(self):
+        self.deleteButtons()
+        self.addMessageField()
+
+        fname = QFileDialog.getOpenFileName(self, 'Open file', '', "OTS Timestamp Files (*.ots)")
+
+        if fname[0] == '':
+            self.show_message("Error: file not selected")
+            return
+
+        ots_file = os.path.abspath(fname[0])
+        orig_file = ots_file[:-4]
+
+        def handle_success(x):
+            unix_time, block_height = x
+
+            LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+            self.show_message("Verification Success!\nThe file existed at %s [Bitcoin Block Height %s]"
                              % (datetime.datetime.fromtimestamp(unix_time, tz=LOCAL_TIMEZONE)
                                 .strftime("%Y/%m/%d %p %H:%M:%S %Z"),
                                 block_height))
-        else:
-            self.showMessage("Error: verification failed")
+            self.addReturnButton()
+
+        def handle_error(x):
+            mes, data = x
+            self.show_message("Verification Error: %s\n[Debug Log]\n%s" % (mes, data))
+            self.addReturnButton()
+
+        worker = VerifyWorker(orig_file, ots_file)
+        worker.signals.success.connect(handle_success)
+        worker.signals.error.connect(handle_error)
+        self.threadpool.start(worker)
 
     def batch_verify(self):
-        pass
+        fname = QFileDialog.getOpenFileNames(self, 'Open file', '', "OTS Timestamp Files (*.ots)")
+        for f in fname[0]:
+            pass
 
-    def showMessage(self, message_str):
-        diag = QDialog(self)
-        diag.setWindowTitle("Result")
-        layout = QVBoxLayout()
-        message = QLabel(message_str)
-        layout.addWidget(message)
-        diag.setLayout(layout)
-        diag.exec()
+    def show_message(self, message_str):
+        self.message.setText(message_str)
 
 
 qAp = QApplication(sys.argv)
