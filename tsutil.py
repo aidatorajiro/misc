@@ -210,7 +210,7 @@ class MainWindow(QWidget):
 
         def handle_success(x):
             code, err, out = x
-            self.show_message("Successfully stamped the file!\n[Details]\nCode %s\nstderr %s\nstdout %s" % (code, err, out))
+            self.show_message("Successfully stamped the file!")
 
         def handle_error(x):
             code, err, out = x
