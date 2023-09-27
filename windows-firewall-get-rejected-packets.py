@@ -1,3 +1,9 @@
+"""
+A script to obtain list of rejected packet and corresponding application's path or service name.
+You can do Little Snitch-like thing through this script! (but large part of firewall control is not automated yet...)
+"""
+
+
 # for outgoing packets
 #  auditpol /set /subcategory:"{0CCE9226-69AE-11D9-BED3-505054503030}" /success:disable /failure:enable
 
