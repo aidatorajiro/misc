@@ -72,7 +72,7 @@ def isSvcHostService(app_info):
 
 def print_err_for_evt():
     e = k32.GetLastError()
-    bufsize = c_int(1)
+    bufsize = c_int(1) # i think this is Windows bug somewhere...
     strdata = create_unicode_buffer('', bufsize.value)
     winevt.EvtGetExtendedStatus(bufsize.value, pointer(strdata), pointer(bufsize))
     strdata = create_unicode_buffer('', bufsize.value)
