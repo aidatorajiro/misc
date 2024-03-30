@@ -28,9 +28,11 @@ parser.add_argument('prefixname', help='The name of wineprefix. The wineprefix s
 
 parser.add_argument('args', nargs='*', help='Args to be passed on wine or executed directly')
 
-parser.add_argument('-r', help="execute raw command such as `winetricks` or `wineserver -k`", action='store_true')
+parser.add_argument('-p', '--preset', help="path to the preset file, relative to this script. (eg. dumpenvs_preset_minimum)")
 
-parser.add_argument('-p', help="path to the preset file, relative to this script.")
+parser.add_argument('-l', '--lang', help="wine language (eg. ja_JP.UTF-8)")
+
+parser.add_argument('-r', help="execute raw command such as `winetricks` or `wineserver -k`", action='store_true')
 
 if '-r' in sys.argv:
     args_r_index = sys.argv.index('-r')
@@ -41,7 +43,7 @@ else:
 
 PFX_TO_BE_MADE = args.prefixname
 PRESSURE_PATH = os.path.expanduser("~/.local/share/Steam/ubuntu12_64/steam-runtime-sniper/var/tmp-SGAKL2/")
-PRESET_PATH = args.p or 'dumpenvs_preset_minimum'
+PRESET_PATH = args.preset or 'dumpenvs_preset_minimum'
 SPIDER_PATH = os.path.expanduser('~/.local/share/Steam/steamapps/common/SteamLinuxRuntime_sniper/run-in-sniper')
 
 tool_path = os.path.abspath(os.path.dirname(__file__))
@@ -92,7 +94,7 @@ for k, v in dumpenvs:
         case _:
             raise NotImplementedError()
 
-final_env[b'LANG'] = b'ja_JP.UTF-8'
+final_env[b'LANG'] = args.lang or b'ja_JP.UTF-8'
 final_env[b'STEAM_COMPAT_DATA_PATH'] = os.path.expanduser('~/wineprefix/' + PFX_TO_BE_MADE)
 final_env[b'WINEPREFIX'] = os.path.expanduser('~/wineprefix/' + PFX_TO_BE_MADE + '/pfx')
 
