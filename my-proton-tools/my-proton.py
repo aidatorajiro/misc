@@ -10,11 +10,14 @@ This program allows you to run any exe files in a custom wine prefix.
 1. start a steam app via proton, and get its pid
 2. `cat /proc/[pid of the game]/environ > dumpenvs` in the directory this program exists
 3. run this program once and generate `dumpenvs_keys` and `dumpenvs_keys_values`
-4. copy `dumpenvs_keys_values` and rename it.
-5. edit the copied file, replacing string values next to the keys with 'v', 'p', 'c' or 'd' or deleting the line
-   v = keep value, c = create cache dir (WIP), d = delete value
-6. by setting `PRESET_PATH_DEFAULT` in this script or passing `-p` argument, specify the path of edited file, relative to the program location.
-7. copy existing proton prefix located at `~/.local/share/Steam/steamapps/compatdata/[game id]` into `~/wineprefix/[wineprefix name]`
+4. (optional) Create a prefix file.
+    1. copy `dumpenvs_keys_values` and rename it.
+    2. in the copied file, replace string values next to the keys with 'v', 'p', 'c' or 'd' or delete the line, so that we can successfully load the environment variables required to run wine.
+    ```
+    v = keep value, c = create cache dir (WIP), d = delete value, a = append value, p = prepend value
+    ```
+    3. by changing `PRESET_PATH_DEFAULT` in this script or passing `-p` argument, specify the path of edited file, relative to the program location.
+7. create a new proton prefix (see `create-prefix-fn.sh`) or copy existing proton prefix located at `~/.local/share/Steam/steamapps/compatdata/[game id]` into `~/wineprefix/[wineprefix name]`
 
 [Note]
 
@@ -42,7 +45,7 @@ parser.add_argument('-l', '--lang', help="wine language", default='ja_JP.UTF-8')
 
 parser.add_argument('--runtime', help="Specify steam linux runtime container executable path relative to steamapps.", default='SteamLinuxRuntime_sniper/run-in-sniper')
 
-parser.add_argument('--proton', help="Specify Proton Version.", default='Proton - Experimental')
+parser.add_argument('--proton', help="Specify Proton Version the path relative to steamapps.", default='Proton - Experimental')
 
 parser.add_argument('--dumpenvs', help="Specify path to dumped env file (by copying /proc/xxx/environ).", default='dumpenvs')
 
