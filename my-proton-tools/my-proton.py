@@ -17,7 +17,7 @@ This program allows you to run any exe files in a custom wine prefix.
     v = keep value, c = create cache dir (WIP), d = delete value, a = append value, p = prepend value
     ```
     3. by changing `PRESET_PATH_DEFAULT` in this script or passing `-p` argument, specify the path of edited file, relative to the program location.
-7. create a new proton prefix (see `create-prefix-fn.sh`) or copy existing proton prefix located at `~/.local/share/Steam/steamapps/compatdata/[game id]` into `~/wineprefix/[wineprefix name]`
+7. copy existing proton prefix located at `~/.local/share/Steam/steamapps/compatdata/[game id]` into `~/wineprefix/[wineprefix name]`
 
 [Note]
 

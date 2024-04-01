@@ -21,7 +21,7 @@ Requires Python 3.11, Steam, Steam Linux Runtime installed via Steam, Proton ins
     v = keep value, c = create cache dir (WIP), d = delete value, a = append value, p = prepend value
     ```
     3. by changing `PRESET_PATH_DEFAULT` in this script or passing `-p` argument, specify the path of edited file, relative to the program location.
-7. create a new proton prefix (see `create-prefix-fn.sh`) or copy existing proton prefix located at `~/.local/share/Steam/steamapps/compatdata/[game id]` into `~/wineprefix/[wineprefix name]`
+7. copy existing proton prefix located at `~/.local/share/Steam/steamapps/compatdata/[game id]` into `~/wineprefix/[wineprefix name]`
 
 You can change proton version by specifying --proton and --runtime simultaneously. Also, if you use multiple proton versions, please dump different env file for different proton versions, and change --dumpenv accordingly.
 
