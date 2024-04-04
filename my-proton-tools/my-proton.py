@@ -118,6 +118,7 @@ for k, v in dumpenvs:
         case _:
             raise NotImplementedError()
 
+final_env[b'HOME'] = os.path.expanduser('~')
 final_env[b'LANG'] = args.lang
 final_env[b'STEAM_COMPAT_DATA_PATH'] = os.path.expanduser('~/wineprefix/' + PFX_TO_BE_MADE)
 final_env[b'WINEPREFIX'] = os.path.expanduser('~/wineprefix/' + PFX_TO_BE_MADE + '/pfx')
