@@ -26,6 +26,7 @@ Also, please dump separate env file and change --dumpenv accordingly if you use 
 """
 
 import os
+import shutil
 import subprocess
 import sys
 import argparse
@@ -91,10 +92,12 @@ final_env = {}
 with open(os.path.join(tool_path, PRESET_PATH)) as f:
     preset = f.read()
 
+PFX_BASEPATH = os.path.expanduser('~/wineprefix/' + PFX_TO_BE_MADE)
+
 table = {}
 
 for x in preset.split('\n'):
-    row = x.split(' ')
+    row = x.split(' ', 2)
     table[row[0]] = row[1:]
 
 for k, v in dumpenvs:
@@ -106,23 +109,23 @@ for k, v in dumpenvs:
         case 'v':
             final_env[k] = v
         case 'c':
-            raise NotImplementedError()
+            os.makedirs(os.path.join(PFX_BASEPATH, t[1]), exist_ok=True)
+            final_env[k] = os.path.join(PFX_BASEPATH, t[1])
         case 'd':
             pass
         case 'r':
-            final_env[k] = ' '.join(t[1:])
+            final_env[k] = t[1]
         case 'a':
-            final_env[k] = v + ' '.join(t[1:])
+            final_env[k] = v + t[1]
         case 'p':
-            final_env[k] = ' '.join(t[1:]) + v
+            final_env[k] = t[1] + v
         case _:
             raise NotImplementedError()
 
-final_env[b'HOME'] = os.path.expanduser('~')
 final_env[b'LANG'] = args.lang
-final_env[b'STEAM_COMPAT_DATA_PATH'] = os.path.expanduser('~/wineprefix/' + PFX_TO_BE_MADE)
-final_env[b'WINEPREFIX'] = os.path.expanduser('~/wineprefix/' + PFX_TO_BE_MADE + '/pfx')
-final_env[b'WINE_GST_REGISTRY_DIR'] = os.path.expanduser('~/wineprefix/' + PFX_TO_BE_MADE + '/gstreamer-1.0')
+final_env[b'STEAM_COMPAT_DATA_PATH'] = PFX_BASEPATH
+final_env[b'WINEPREFIX'] = os.path.join(PFX_BASEPATH, 'pfx')
+final_env[b'WINE_GST_REGISTRY_DIR'] = os.path.join(PFX_BASEPATH, 'gstreamer-1.0')
 
 print(final_env)
 
