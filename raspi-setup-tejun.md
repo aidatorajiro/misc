@@ -145,7 +145,6 @@ update-initramfs -k all -u
 
 ## make sure generated initramfs files contain necessary driver files
 ```bash
-lsinitramfs /boot/firmware/initramfs_2712 | rg lvm
 lsinitramfs /boot/firmware/initramfs_2712 | grep lvm
 lsinitramfs /boot/firmware/initramfs_2712 | grep crypt
 ```
