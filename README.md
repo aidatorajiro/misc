@@ -20,6 +20,7 @@
 - ts: timestamping utils
 
 # small projects
+- raspi-setup-tejun.md: Raspberry pi 5 cryptvolume setup
 - devtool-protocol.js: cli webpage archiver
 - fcitx5-mozcdict-ext-debian.sh: 令和最新版 mozc build
 - findprime.py: <http://integers.hatenablog.com/entry/2019/03/25/163732>
