@@ -18,7 +18,7 @@ Requires Python 3.11, Steam, Steam Linux Runtime installed via Steam, Proton ins
     1. copy `dumpenvs_keys_values` and rename it.
     2. in the copied file, replace string values next to the keys with 'v', 'p', 'c' or 'd' or delete the line, so that we can successfully load the environment variables required to run wine.
     ```
-    v = keep value, c = create cache dir (WIP), d = delete value, a = append value, p = prepend value
+    v = keep value, c = create cache dir, d = delete value, a = append value, p = prepend value
     ```
     3. by changing `PRESET_PATH_DEFAULT` in this script or passing `-p` argument, specify the path of edited file, relative to the program location.
 7. copy existing proton prefix located at `~/.local/share/Steam/steamapps/compatdata/[game id]` into `~/wineprefix/[wineprefix name]`
