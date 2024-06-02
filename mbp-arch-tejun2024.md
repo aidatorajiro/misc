@@ -1,0 +1,207 @@
+## resize ssd drive to make room for linux installation
+
+## download t2linux iso & boot
+
+## inside linux iso...
+
+### set envs to avoid mistake
+
+```bash
+echo MAINEFI=/dev/nvme0n1p1 >> myenvs
+echo MAINBOOT=/dev/nvme0n1p3 >> myenvs
+echo MAINVG=/dev/nvme0n1p4 >> myenvs
+. ./myenvs
+```
+
+### format VG & BOOT
+
+```bash
+cryptsetup luksFormat --type luks1 $MAINBOOT
+cryptsetup luksFormat $MAINVG
+vgcreate $MAINVG
+vgcreate mbpvg $MAINVG
+cryptsetup open $MAINVG cryptvg
+cryptsetup open $MAINBOOT cryptboot
+mkfs.ext4 /dev/mapper/cryptboot
+vgcreate mbpvg /dev/mapper/cryptvg
+lvcreate -L 100G -n root mbpvg
+lvcreate -L 100G -n home mbpvg
+mkfs.ext4 /dev/mapper/mbpvg-root 
+mkfs.ext4 /dev/mapper/mbpvg-home
+mount /dev/mapper/mbpvg-root /mnt
+mkdir /mnt/home /mnt/boot
+mount /dev/mapper/mbpvg-home /mnt/home
+mount /dev/mapper/cryptboot /mnt/boot
+mkdir /mnt/boot/efi
+mount /dev/nvme0n1p1 /mnt/boot/efi
+rsync -av /mnt/boot/efi/ /mnt/backup-efi-20240601/
+```
+
+### connect to wifi using iwctl
+```bash
+iwctl
+station wlan0 get-networks
+station wlan0 connect [SOMESSID]
+```
+
+### pacstrap to install necessary items
+```bash
+pacstrap /mnt base linux-t2 apple-t2-audio-config apple-bcm-firmware iwd grub efibootmgr tiny-dfr t2fanrd linux-firmware iwd networkmanager vim archlinux-keyring sudo less ripgrep lvm2 bluez blueman usbutils
+```
+
+### add t2-linux repo
+```bash
+vim /mnt/etc/pacman.conf
+```
+
+append these lines:
+```toml
+[arch-mact2]
+Server = https://mirror.funami.tech/arch-mact2/os/x86_64
+SigLevel = Never
+```
+
+### genfstab and chroot
+```bash
+genfstab -U /mnt >> /mnt/etc/fstab
+lsblk -o uuid,name > /mnt/lsblkresult
+vim /mnt/lsblkresult # edit lsblkresult to make some UUID database that can be parsed by bash
+cp myenvs /mnt
+arch-chroot /mnt
+```
+
+lsblkresult should look like this:
+```bash
+# UUID                                   NAME
+        #                               loop0
+#XXXX-XX-XX-XX-XX-XX-XX                 sda
+#XXXX-XX-XX-XX-XX-XX-XX                 ├─sda1
+#XXXX-XXXX                              └─sda2
+#                                       nvme0n1
+EFIUUID=XXXX-XXXX  #                            ├─nvme0n1p1
+#XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX   ├─nvme0n1p
+BOOTUUID1=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX #  ├─nvme0n1p3
+BOOTUUID2=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX #  │ └─cryptboot
+VGUUID1=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX #  └─nvme0n1p4
+VGUUID2=xXxXxX-xXxX-xXxX-xXxX-xXxX-xXxX-xXxXxX  # └─cryptvg
+ROOTUUID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX    #   ├─mbpvg-root
+HOMEUUID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX     #  └─mbpvg-home
+```
+
+## inside chroot
+
+### import keys
+```bash
+pacman-key --init
+pacman-key --populate
+```
+
+### config something
+```bash
+ln -sf /usr/share/zoneinfo/[SOMEPLACE] /etc/localtime
+hwclock --systohc
+vim /etc/locale.gen # uncomment language(s) you use
+vim /etc/locale.conf # set LANG=xx_XX.UTF-8
+locale-gen
+vim /etc/hostname # set hostname
+useradd -m someuser
+passwd someuser
+EDITOR=vim visudo
+su someuser
+sudo ls # test if sudo works
+exit
+```
+
+### config mkinitcpio
+```bash
+vim /etc/mkinitcpio.conf
+```
+
+replace these values:
+```toml
+MODULES=(apple-bce)
+FILES=(/root/bootkey)
+HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block encrypt lvm2 filesystems fsck)
+```
+
+### generate secret to unlock disks
+```bash
+cd /root
+dd bs=512 count=4 if=/dev/random of=/root/bootkey iflag=fullblock
+chmod 000 bootkey
+. ./myenvs
+. ./lsblkresult
+cryptsetup luksAddKey $MAINBOOT /root/bootkey 
+cryptsetup luksAddKey $MAINVG /root/bootkey
+```
+
+### config grub
+```bash
+vim /etc/default/grub
+```
+
+replace these values:
+```toml
+GRUB_CMDLINE_LINUX_DEFAULT="root=UUID=ROOTUUID cryptkey=rootfs:/root/bootkey cryptdevice=UUID=VGUUID:cryptvg loglevel=3 quiet intel_iommu=on iommu=pt pcie_ports=compat"
+GRUB_ENABLE_CRYPTODISK=y
+```
+
+rootuuid and vguuid **MUST** be replaced with actual uuid
+
+```bash
+sed -i.bak s/VGUUID/$VGUUID1/ /etc/default/grub # replace with uuid of encrypted boot
+sed -i.bak s/ROOTUUID/$ROOTUUID/ /etc/default/grub # replace with uuid of the root volume inside the vg
+```
+
+### generate vmlinuz. initramfs, grub, grub cfg
+```bash
+mkinitcpio -P
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB --removable
+grub-mkconfig -o /boot/grub/grub.cfg
+```
+
+### edit /etc/crypttab to unlock /boot after the linux is up
+```bash
+vim /etc/crypttab
+```
+
+just put this line:
+```
+boot	UUID=BOOTUUID	/root/bootkey
+```
+
+and replace with the uuid of encrypted boot
+```bash
+sed -i.bak s/BOOTUUID/$BOOTUUID1/ /etc/crypttab
+```
+
+### config NetworkManager (important because iwd doesn't setup dhcp and routing by default)
+
+```bash
+vim /etc/NetworkManager/conf.d/iwd.conf
+```
+
+```toml
+[device]
+wifi.backend=iwd
+wifi.iwd.autoconnect=yes
+```
+
+or without NetworkManager, you can create /etc/iwd/main.conf as follows:
+```toml
+[General]
+EnableNetworkConfiguration=true
+```
+
+## exit chroot and reboot
+
+```bash
+exit
+reboot
+```
+
+## note on usb boot
+
+linux's xhci_hcd driver is somewhat broken, so if you are going to usb boot, you should write `options usb-storage quirks=XXXX:XXXX:u` on `/etc/modprobe.d/usbfix.conf`, where `XXXX:XXXX` is the vender and product id obtained by `lsusb`.
+
+for example, config for RTL9210 will be `options usb-storage quirks=0bda:9210:u`
