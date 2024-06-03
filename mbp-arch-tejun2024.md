@@ -1,5 +1,7 @@
 ## resize ssd drive to make room for linux installation
 
+Create **two partitions**, aside from mac os installation: (1) a 10GB luks-ext4 encrypted boot partition (2) the rest of disk will be the main luks-lvm partition
+
 ## download t2linux iso & boot
 
 ## inside linux iso...
