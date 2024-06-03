@@ -4,6 +4,10 @@ Create **two partitions**, aside from mac os installation: (1) a 10GB luks-ext4 
 
 ## download t2linux iso & boot
 
+Download the ISO from here:
+
+https://github.com/t2linux/archiso-t2/releases
+
 ## inside linux iso...
 
 ### set envs to avoid mistake
