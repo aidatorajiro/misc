@@ -159,13 +159,6 @@ sed -i.bak s/VGUUID/$VGUUID1/ /etc/default/grub # replace with uuid of encrypted
 sed -i.bak s/ROOTUUID/$ROOTUUID/ /etc/default/grub # replace with uuid of the root volume inside the vg
 ```
 
-### generate vmlinuz. initramfs, grub, grub cfg
-```bash
-mkinitcpio -P
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB --removable
-grub-mkconfig -o /boot/grub/grub.cfg
-```
-
 ### edit /etc/crypttab to unlock /boot after the linux is up
 ```bash
 vim /etc/crypttab
@@ -181,6 +174,13 @@ and replace with the uuid of encrypted boot
 sed -i.bak s/BOOTUUID/$BOOTUUID1/ /etc/crypttab
 ```
 
+### generate vmlinuz. initramfs, grub, grub cfg
+```bash
+mkinitcpio -P
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB --removable
+grub-mkconfig -o /boot/grub/grub.cfg
+```
+
 ### config NetworkManager (important because iwd doesn't setup dhcp and routing by default)
 
 ```bash
@@ -193,7 +193,7 @@ wifi.backend=iwd
 wifi.iwd.autoconnect=yes
 ```
 
-or without NetworkManager, you can create /etc/iwd/main.conf as follows:
+alternatively, without NetworkManager, you can create /etc/iwd/main.conf as follows:
 ```toml
 [General]
 EnableNetworkConfiguration=true
