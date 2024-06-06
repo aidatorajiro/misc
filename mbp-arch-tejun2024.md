@@ -24,8 +24,6 @@ echo MAINVG=/dev/nvme0n1p4 >> myenvs
 ```bash
 cryptsetup luksFormat --type luks1 $MAINBOOT
 cryptsetup luksFormat $MAINVG
-vgcreate $MAINVG
-vgcreate mbpvg $MAINVG
 cryptsetup open $MAINVG cryptvg
 cryptsetup open $MAINBOOT cryptboot
 mkfs.ext4 /dev/mapper/cryptboot
@@ -40,7 +38,7 @@ mount /dev/mapper/mbpvg-home /mnt/home
 mount /dev/mapper/cryptboot /mnt/boot
 mkdir /mnt/boot/efi
 mount /dev/nvme0n1p1 /mnt/boot/efi
-rsync -av /mnt/boot/efi/ /mnt/backup-efi-20240601/
+rsync -av /mnt/boot/efi/ /mnt/backup-efi/
 ```
 
 ### connect to wifi using iwctl
@@ -48,6 +46,7 @@ rsync -av /mnt/boot/efi/ /mnt/backup-efi-20240601/
 iwctl
 station wlan0 get-networks
 station wlan0 connect [SOMESSID]
+exit
 ```
 
 ### pacstrap to install necessary items
@@ -104,6 +103,7 @@ pacman-key --populate
 
 ### config something
 ```bash
+systemctl enable t2fanrd
 ln -sf /usr/share/zoneinfo/[SOMEPLACE] /etc/localtime
 hwclock --systohc
 vim /etc/locale.gen # uncomment language(s) you use
@@ -112,7 +112,7 @@ locale-gen
 vim /etc/hostname # set hostname
 useradd -m someuser
 passwd someuser
-EDITOR=vim visudo
+EDITOR=vim visudo # add to sudoers
 su someuser
 sudo ls # test if sudo works
 exit
@@ -135,8 +135,8 @@ HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont bl
 cd /root
 dd bs=512 count=4 if=/dev/random of=/root/bootkey iflag=fullblock
 chmod 000 bootkey
-. ./myenvs
-. ./lsblkresult
+. /myenvs
+. /lsblkresult
 cryptsetup luksAddKey $MAINBOOT /root/bootkey 
 cryptsetup luksAddKey $MAINVG /root/bootkey
 ```
