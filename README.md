@@ -20,7 +20,7 @@
 - ts: timestamping utils
 
 # small projects
-- <mbp-arch-tejun2024.md>: t2 archlinux with encrypted boot setup guide
+- mbp-arch-tejun2024.md: t2 archlinux with encrypted boot setup guide
 - raspi-setup-tejun.md: Raspberry pi 5 cryptvolume setup
 - devtool-protocol.js: cli webpage archiver
 - fcitx5-mozcdict-ext-debian.sh: 令和最新版 mozc build
