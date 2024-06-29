@@ -2,6 +2,8 @@
 
 Create **two partitions**, aside from mac os installation: (1) a 10GB luks-ext4 encrypted boot partition (2) the rest of disk will be the main luks-lvm partition
 
+Please backup EFI system partition and the main Mac OS installation and Mac OS user files before booting USB drive.
+
 ## download t2linux iso & boot
 
 Download the ISO from here:
@@ -10,7 +12,9 @@ https://github.com/t2linux/archiso-t2/releases
 
 ## inside linux iso...
 
-### set envs to avoid mistake
+### set envs to avoid accident
+
+!!!!!!!! please double check device names, everything on MAINBOOT and MAINVG will be erased !!!!!!!!
 
 ```bash
 echo MAINEFI=/dev/nvme0n1p1 >> myenvs
@@ -198,6 +202,30 @@ or without NetworkManager, you can create /etc/iwd/main.conf as follows:
 [General]
 EnableNetworkConfiguration=true
 ```
+
+### (if you are using NetworkManager) optionally, you can add Network Address Randomization feature
+
+Create a file `/etc/iwd/main.conf` as follows to enable address randomization feature, which (as far as i know) is not supported on usual Mac OS!
+
+```toml
+[General]
+AddressRandomization=network
+```
+
+Then, create some file like `/etc/NetworkManager/conf.d/randmac.conf` and set the contents as follows:
+
+```toml
+[device]
+wifi.scan-rand-mac-address=yes
+ 
+[connection]
+wifi.cloned-mac-address=stable
+ipv6.dhcp-duid=stable-uuid
+connection.stable-id=abcdefsomerandomtext-${CONNECTION}
+```
+
+this will keep the mac address for the same wifi network. replace `abcdefsomerandomtext` with random token you like, such as a randomly generated UUID. You may want to set up a cron that regenerates this file every week or so.
+
 
 ## exit chroot and reboot
 
