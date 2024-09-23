@@ -18,11 +18,11 @@
 - tex_hanekaeri: 壁と物体の跳ね返りの話
 - tm: wip, something about turing machine. do you like dominos? (cf. <https://www3.nd.edu/~dchiang/teaching/puzzles/post.html>)
 - ts: timestamping utils
+- archiving: scripts for archiving web data
 
 # small projects
 - mbp-arch-tejun2024.md: t2 archlinux with encrypted boot setup guide
 - raspi-setup-tejun.md: Raspberry pi 5 cryptvolume setup
-- devtool-protocol.js: cli webpage archiver
 - fcitx5-mozcdict-ext-debian.sh: 令和最新版 mozc build
 - findprime.py: <http://integers.hatenablog.com/entry/2019/03/25/163732>
 - keisan_frackin.numbers: frackin universe calculation
