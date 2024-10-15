@@ -98,5 +98,5 @@ import pickle
 with open(os.path.join(tool_path, 'inner', 'arg-pickle'), 'wb') as f:
     pickle.dump([proc_args, proc_env_exe], f)
 
-subprocess.run([sniper_path, os.path.join(tool_path, 'inner', 'my-proton-inner.py')])
+subprocess.run([sniper_path, os.path.join(tool_path, 'inner', 'my-proton-inner.py')], env=proc_env_sniper)
 
