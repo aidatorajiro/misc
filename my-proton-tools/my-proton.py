@@ -1,35 +1,40 @@
 #!/usr/bin/python3
 
-PRESET_PATH_DEFAULT = 'dumpenvs_preset_minimum'
 
 manual = """
 This program allows you to run any exe files in a custom wine prefix. 
 
+Please note that proton is highly unstable for simpler or older games (renpy, rpg maker etc). For that purpose I recommend usual wine.
+
 [Instruction]
 
-1. start a steam app via proton, and get its pid
-2. `cat /proc/[pid of the game]/environ > dumpenvs` in the directory this program exists
-3. run this program once and generate `dumpenvs_keys` and `dumpenvs_keys_values`
+`my-proton.py` is the main script. You need to generate `dumpenvs` before running it. The following instruction supposes that this tool is placed in `$HOME/my-proton-tools`.
+
+1. Search for the sniper/runtime path (e.g. `$HOME/.local/steamapps/common/SteamLinuxRuntime_sniper/run`) and edit it. Append `cat /proc/$$/environ > $HOME/my-proton-tools/dumpenvs_sniper` on the top.
+2. Start a steam app via proton, and get its pid.
+3. `cat /proc/[pid of the game]/environ > $HOME/my-proton-tools/dumpenvs_exe`
 4. (optional) Create a prefix file.
-    1. copy `dumpenvs_keys_values` and rename it.
-    2. in the copied file, replace string values next to the keys with 'v', 'p', 'c' or 'd' or delete the line, so that we can successfully load the environment variables required to run wine.
+    1. Run this program once and generate `dumpenvs_EXE_keys_values` and `dumpenvs_SNIPER_keys_values`
+    2. Copy `dumpenvs_EXE_keys_values`/`dumpenvs_SNIPER_keys_values` and rename them to something else.
+    3. In the copied files, replace string values next to the keys with 'v', 'p', 'c' or 'd' or delete the line, so that we can successfully load the environment variables required to run wine.
     ```
-    v = keep value, c = create cache dir (WIP), d = delete value, a = append value, p = prepend value
+    v = keep value
+    c = create cache dir
+    d = delete value (same as just deleting the line)
+    a = append value
+    p = prepend value
     ```
-    3. by changing `PRESET_PATH_DEFAULT` in this script or passing `-p` argument, specify the path of edited file, relative to the program location.
-7. copy existing proton prefix located at `~/.local/share/Steam/steamapps/compatdata/[game id]` into `~/wineprefix/[wineprefix name]`
+    4. by passing `-s` (for sniper/runtime) or `-e` (for exe) argument, specify the path of edited files, relative to the tool location.
+5. Run `create-prefix.sh` to safely create a new proton environment. (Please edit `SAMPLEAPPID` to specify the steam game id that you have previously played and is a windows-only game)
 
-[Note]
-
-You can change proton version by specifying --proton and --runtime simultaneously,
-Also, please dump separate env file and change --dumpenv accordingly if you use multiple proton versions...
+You can change proton version by specifying --proton and --runtime simultaneously. Also, if you use multiple proton versions, please dump different dumpenv files for different proton versions, and change `-s` and `-e` accordingly.
 """
 
 import os
-import shutil
 import subprocess
 import sys
 import argparse
+from envcalc import envcalc, add_wine_prefix
 
 parser = argparse.ArgumentParser(
                     prog='Simple Proton wrapper',
@@ -40,15 +45,19 @@ parser.add_argument('prefixname', help='The name of wineprefix. The wineprefix s
 
 parser.add_argument('args', nargs='*', help='Args to be passed on wine or executed directly')
 
-parser.add_argument('-p', '--preset', help="path to the preset file, relative to this script.", default='dumpenvs_preset_minimum')
-
 parser.add_argument('-l', '--lang', help="wine language", default='ja_JP.UTF-8')
 
 parser.add_argument('--runtime', help="Specify steam linux runtime container executable path relative to steamapps.", default='SteamLinuxRuntime_sniper/run-in-sniper')
 
 parser.add_argument('--proton', help="Specify Proton Version the path relative to steamapps.", default='Proton - Experimental')
 
-parser.add_argument('--dumpenvs', help="Specify path to dumped env file (by copying /proc/xxx/environ).", default='dumpenvs')
+parser.add_argument('-s', '--preset_sniper', help="path to the preset file, relative to this script.", default='preset_sniper_wide')
+
+parser.add_argument('-e', '--preset_exe', help="path to the preset file, relative to this script.", default='preset_exe_wide')
+
+parser.add_argument('--dumpenvs_sniper', help="Specify path to dumped env file for sniper. (Can be obtained by adding 'cat /proc/$$/environ > $HOME/my-proton-tools/dumpenvs_sniper' to '$HOME/.local/steamapps/common/SteamLinuxRuntime_sniper/run')", default='dumpenvs_sniper')
+
+parser.add_argument('--dumpenvs_exe', help="Specify path to dumped env file for exe files. (Can be obtained by running 'cat /proc/12345/environ > $HOME/my-proton-tools/dumpenvs_exe', where 12345 is the pid of the windows exe)", default='dumpenvs_exe')
 
 parser.add_argument('-r', help="execute raw command such as `winetricks` or `wineserver -k`", action='store_true')
 
@@ -59,9 +68,7 @@ if '-r' in sys.argv:
 else:
     args = parser.parse_args()
 
-PFX_TO_BE_MADE = args.prefixname
-PRESET_PATH = args.preset
-SNIPER_PATH = os.path.expanduser('~/.local/share/Steam/steamapps/common/%s' % args.runtime)
+sniper_path = os.path.expanduser('~/.local/share/Steam/steamapps/common/%s' % args.runtime)
 
 tool_path = os.path.abspath(os.path.dirname(__file__))
 
@@ -71,66 +78,13 @@ if not os.path.exists(proton_root):
     if not os.path.exists(proton_root):
         raise FileNotFoundError('Proton executable not found.')
 
-with open(os.path.join(tool_path, args.dumpenvs), 'rb') as f:
-    dumpenvs = [x.split(b'=', 1) for x in f.read().split(b'\0') if x != b'']
+calc_env_sniper = envcalc(args.dumpenvs_sniper, args.prefixname, args.preset_sniper, args.lang, "SNIPER")
+proc_env_sniper = os.environb.copy()
+proc_env_sniper.update(calc_env_sniper)
 
-with open(os.path.join(tool_path, 'dumpenvs_keys_values'), 'w') as f:
-    f.write('\n'.join([x[0].decode() + ' ' + x[1].decode().replace('\n', '<<<LF>>>') for x in dumpenvs]))
-
-with open(os.path.join(tool_path, 'dumpenvs_keys'), 'w') as f:
-    f.write('\n'.join([x[0].decode() for x in dumpenvs]))
-
-final_env = {}
-
-# v: copy value
-# c: cache (specify cache path at next arg)
-# d: delete
-# r: replace with some value
-# a: append some value
-# p: prepend some value
-
-with open(os.path.join(tool_path, PRESET_PATH)) as f:
-    preset = f.read()
-
-PFX_BASEPATH = os.path.expanduser('~/wineprefix/' + PFX_TO_BE_MADE)
-
-table = {}
-
-for x in preset.split('\n'):
-    row = x.split(' ', 2)
-    table[row[0]] = row[1:]
-
-for k, v in dumpenvs:
-    try:
-        t = table[k.decode()]
-    except KeyError:
-        continue
-    match t[0]:
-        case 'v':
-            final_env[k] = v
-        case 'c':
-            os.makedirs(os.path.join(PFX_BASEPATH, t[1]), exist_ok=True)
-            final_env[k] = os.path.join(PFX_BASEPATH, t[1])
-        case 'd':
-            pass
-        case 'r':
-            final_env[k] = t[1]
-        case 'a':
-            final_env[k] = v + t[1]
-        case 'p':
-            final_env[k] = t[1] + v
-        case _:
-            raise NotImplementedError()
-
-final_env[b'LANG'] = args.lang
-final_env[b'STEAM_COMPAT_DATA_PATH'] = PFX_BASEPATH
-final_env[b'WINEPREFIX'] = os.path.join(PFX_BASEPATH, 'pfx')
-final_env[b'WINE_GST_REGISTRY_DIR'] = os.path.join(PFX_BASEPATH, 'gstreamer-1.0')
-
-print(final_env)
-
-proc_env = os.environb.copy()
-proc_env.update(final_env)
+calc_env_exe = add_wine_prefix(envcalc(args.dumpenvs_exe, args.prefixname, args.preset_exe, args.lang, "EXE"), args.prefixname)
+proc_env_exe = os.environb.copy()
+proc_env_exe.update(calc_env_exe)
 
 if args.r:
     proc_args = args_r_remain
@@ -142,6 +96,7 @@ else:
 
 import pickle
 with open(os.path.join(tool_path, 'inner', 'arg-pickle'), 'wb') as f:
-    pickle.dump([proc_args, proc_env], f)
+    pickle.dump([proc_args, proc_env_exe], f)
 
-subprocess.run([SNIPER_PATH, os.path.join(tool_path, 'inner', 'my-proton-inner.py')])
+subprocess.run([sniper_path, os.path.join(tool_path, 'inner', 'my-proton-inner.py')])
+

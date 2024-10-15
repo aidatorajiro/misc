@@ -7,23 +7,30 @@ Please note that proton is highly unstable for simpler or older games (renpy, rp
 ## Installation
 Requires Python 3.11, Steam, Steam Linux Runtime installed via Steam, Proton installed via Steam or AUR
 
+Tested in Arch Linux and Ubuntu with XFCE. Both snap and direct installation of steam supported.
+
 ## Instruction
 
-`my-proton.py` is the main script. You need to generate `dumpenvs` before running it.
+`my-proton.py` is the main script. You need to generate `dumpenvs` before running it. The following instruction supposes that this tool is placed in `$HOME/my-proton-tools`.
 
-1. start a steam app via proton, and get its pid
-2. `cat /proc/[pid of the game]/environ > dumpenvs` in the directory this program exists
-3. run this program once and generate `dumpenvs_keys` and `dumpenvs_keys_values`
+1. Search for the sniper/runtime path (e.g. `$HOME/.local/steamapps/common/SteamLinuxRuntime_sniper/run`) and edit it. Append `cat /proc/$$/environ > $HOME/my-proton-tools/dumpenvs_sniper` on the top.
+2. Start a steam app via proton, and get its pid.
+3. `cat /proc/[pid of the game]/environ > $HOME/my-proton-tools/dumpenvs_exe`
 4. (optional) Create a prefix file.
-    1. copy `dumpenvs_keys_values` and rename it.
-    2. in the copied file, replace string values next to the keys with 'v', 'p', 'c' or 'd' or delete the line, so that we can successfully load the environment variables required to run wine.
+    1. Run this program once and generate `dumpenvs_EXE_keys_values` and `dumpenvs_SNIPER_keys_values`
+    2. Copy `dumpenvs_EXE_keys_values`/`dumpenvs_SNIPER_keys_values` and rename them to something else.
+    3. In the copied files, replace string values next to the keys with 'v', 'p', 'c' or 'd' or delete the line, so that we can successfully load the environment variables required to run wine.
     ```
-    v = keep value, c = create cache dir, d = delete value, a = append value, p = prepend value
+    v = keep value
+    c = create cache dir
+    d = delete value (same as just deleting the line)
+    a = append value
+    p = prepend value
     ```
-    3. by changing `PRESET_PATH_DEFAULT` in this script or passing `-p` argument, specify the path of edited file, relative to the program location.
-7. copy existing proton prefix located at `~/.local/share/Steam/steamapps/compatdata/[game id]` into `~/wineprefix/[wineprefix name]`
+    4. by passing `-s` (for sniper/runtime) or `-e` (for exe) argument, specify the path of edited files, relative to the tool location.
+5. Run `create-prefix.sh` to safely create a new proton environment. (Please edit `SAMPLEAPPID` to specify the steam game id that you have previously played and is a windows-only game)
 
-You can change proton version by specifying --proton and --runtime simultaneously. Also, if you use multiple proton versions, please dump different env file for different proton versions, and change --dumpenv accordingly.
+You can change proton version by specifying --proton and --runtime simultaneously. Also, if you use multiple proton versions, please dump different dumpenv files for different proton versions, and change `-s` and `-e` accordingly.
 
 ## Usage
 
