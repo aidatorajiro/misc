@@ -83,8 +83,6 @@ proc_env_sniper = os.environb.copy()
 proc_env_sniper.update(calc_env_sniper)
 
 calc_env_exe = add_wine_prefix(envcalc(args.dumpenvs_exe, args.prefixname, args.preset_exe, args.lang, "EXE"), args.prefixname)
-proc_env_exe = os.environb.copy()
-proc_env_exe.update(calc_env_exe)
 
 if args.r:
     proc_args = args_r_remain
@@ -96,7 +94,7 @@ else:
 
 import pickle
 with open(os.path.join(tool_path, 'inner', 'arg-pickle'), 'wb') as f:
-    pickle.dump([proc_args, proc_env_exe], f)
+    pickle.dump([proc_args, calc_env_exe], f)
 
 subprocess.run([sniper_path, os.path.join(tool_path, 'inner', 'my-proton-inner.py')], env=proc_env_sniper)
 
