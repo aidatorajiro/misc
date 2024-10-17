@@ -13,7 +13,7 @@ Tested in Arch Linux and Ubuntu with XFCE. Both snap and direct installation of 
 
 `my-proton.py` is the main script. You need to generate `dumpenvs` before running it. The following instruction supposes that this tool is placed in `$HOME/my-proton-tools`.
 
-1. Search for the sniper/runtime path (e.g. `$HOME/.local/steamapps/common/SteamLinuxRuntime_sniper/run`) and edit it. Append `cat /proc/$$/environ > $HOME/my-proton-tools/dumpenvs_sniper` on the top.
+1. Search for the sniper/runtime path (e.g. `$HOME/.local/share/Steam/steamapps/common/SteamLinuxRuntime_sniper/run`) and edit it. Append `cat /proc/$$/environ > $HOME/my-proton-tools/dumpenvs_sniper` on the top.
 2. Start a steam app via proton, and get its pid.
 3. `cat /proc/[pid of the game]/environ > $HOME/my-proton-tools/dumpenvs_exe`
 4. (optional) Create a prefix file.
