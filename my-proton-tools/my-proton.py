@@ -10,7 +10,7 @@ Please note that proton is highly unstable for simpler or older games (renpy, rp
 
 `my-proton.py` is the main script. You need to generate `dumpenvs` before running it. The following instruction supposes that this tool is placed in `$HOME/my-proton-tools`.
 
-1. Search for the sniper/runtime path (e.g. `$HOME/.local/steamapps/common/SteamLinuxRuntime_sniper/run`) and edit it. Append `cat /proc/$$/environ > $HOME/my-proton-tools/dumpenvs_sniper` on the top.
+1. Search for the sniper/runtime path (e.g. `$HOME/.local/share/Steam/steamapps/common/SteamLinuxRuntime_sniper/run`) and edit it. Append `cat /proc/$$/environ > $HOME/my-proton-tools/dumpenvs_sniper` on the top.
 2. Start a steam app via proton, and get its pid.
 3. `cat /proc/[pid of the game]/environ > $HOME/my-proton-tools/dumpenvs_exe`
 4. (optional) Create a prefix file.
@@ -55,7 +55,7 @@ parser.add_argument('-s', '--preset_sniper', help="path to the preset file, rela
 
 parser.add_argument('-e', '--preset_exe', help="path to the preset file, relative to this script.", default='preset_exe_wide')
 
-parser.add_argument('--dumpenvs_sniper', help="Specify path to dumped env file for sniper. (Can be obtained by adding 'cat /proc/$$/environ > $HOME/my-proton-tools/dumpenvs_sniper' to '$HOME/.local/steamapps/common/SteamLinuxRuntime_sniper/run')", default='dumpenvs_sniper')
+parser.add_argument('--dumpenvs_sniper', help="Specify path to dumped env file for sniper. (Can be obtained by adding 'cat /proc/$$/environ > $HOME/my-proton-tools/dumpenvs_sniper' to '$HOME/.local/share/Steam/steamapps/common/SteamLinuxRuntime_sniper/run')", default='dumpenvs_sniper')
 
 parser.add_argument('--dumpenvs_exe', help="Specify path to dumped env file for exe files. (Can be obtained by running 'cat /proc/12345/environ > $HOME/my-proton-tools/dumpenvs_exe', where 12345 is the pid of the windows exe)", default='dumpenvs_exe')
 
