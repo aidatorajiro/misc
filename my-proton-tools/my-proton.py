@@ -61,6 +61,8 @@ parser.add_argument('--dumpenvs_exe', help="Specify path to dumped env file for 
 
 parser.add_argument('-r', help="execute raw command such as `winetricks` or `wineserver -k`", action='store_true')
 
+args_r_remain: list[str] = []
+
 if '-r' in sys.argv:
     args_r_index = sys.argv.index('-r')
     args = parser.parse_args(sys.argv[1:args_r_index+1])
@@ -68,11 +70,11 @@ if '-r' in sys.argv:
 else:
     args = parser.parse_args()
 
-sniper_path = os.path.expanduser('~/.local/share/Steam/steamapps/common/%s' % args.runtime)
+sniper_path: str = os.path.expanduser('~/.local/share/Steam/steamapps/common/%s' % args.runtime)
 
 tool_path = os.path.abspath(os.path.dirname(__file__))
 
-proton_root = os.path.expanduser("~/.local/share/Steam/steamapps/common/%s/" % args.proton)
+proton_root: str = os.path.expanduser("~/.local/share/Steam/steamapps/common/%s/" % args.proton)
 if not os.path.exists(proton_root):
     proton_root = "/usr/share/steam/compatibilitytools.d/proton"
     if not os.path.exists(proton_root):
@@ -84,7 +86,9 @@ proc_env_sniper.update(calc_env_sniper)
 
 calc_env_exe = add_wine_prefix(envcalc(args.dumpenvs_exe, args.prefixname, args.preset_exe, args.lang, "EXE"), args.prefixname)
 
-if args.r:
+proc_args: list[str] = []
+
+if len(args_r_remain) > 0:
     proc_args = args_r_remain
 else:
     winepath = os.path.join(proton_root, 'files', 'bin', 'wine')
