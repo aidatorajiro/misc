@@ -1,0 +1,28 @@
+\begin{luacode*}
+refTable = {}
+function getlength (a)
+    return #a
+end
+\end{luacode*}
+
+\newcommand{\refdef}[3]{%
+\expandafter\newcommand\csname ref#1\endcsname{[#2]}%
+\expandafter\newcommand\csname refp#1\endcsname[1]{[#2: ##1]}%
+\expandafter\newcommand\csname refc#1\endcsname{#3}%
+\directlua{table.insert(refTable, "#1")}
+}
+
+%TODO: implement automatic ordering
+
+\refdef{SomeJapaneseBook}{山田 (9999)}{山田存在しない名前 (9999)「うおおおおおおお------がががが」『なんでもないよ』赦そう機構}
+
+\refdef{SomeEnglishBook}{Yamada et al. (9999)}{S. Yamada, N. Tanaka, M. Dameda, S. Sonnakotonaiyo (9999) From Futa-Kill Eology to Plumification of Kowadom, \textit{Journal of Ethical Implerealism}71, Kawaiiyo Foundation}
+
+\newcommand{\thebib}{
+    \setlength{\parindent}{0pt}
+    \directlua{
+        for i = 1, getlength(refTable) do
+            tex.sprint('\\refc' .. refTable[i] .. '\\\\\\\\')
+        end
+    }
+}

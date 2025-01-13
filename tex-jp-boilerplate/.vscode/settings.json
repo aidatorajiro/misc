@@ -1,0 +1,18 @@
+{
+    "editor.wordWrap": "on",
+    "latex-workshop.latex.recipes": [
+        {
+          "name": "buildscript",
+          "tools": ["buildscript"]
+        }
+      ],
+      "latex-workshop.latex.tools": [
+        {
+          "name": "buildscript",
+          "command": "/bin/bash",
+          "args": [
+            "buildbuild.sh"
+          ]
+        }
+      ]
+}
