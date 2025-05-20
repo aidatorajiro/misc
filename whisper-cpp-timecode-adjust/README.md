@@ -1,6 +1,6 @@
 ## Process separated wave files properly in whisper
 
-When we use Whisper, we often separate a long audio wave data into multiple parts. However, if we run Whisper separately, all the outputs will have timestamps start from zero. This script will adjust them into consistent timestamps.
+When we use Whisper, we often separate a long audio wave data into multiple parts. However, if we run Whisper separately, all the outputs will have timestamps start from zero. This script will adjust them into consistent, consecutive timestamps.
 
 1. Split a long wave file into separate wav files (manually via Audacity, or automatically). In Audacity, you can export multiple wave files after assigning "labels" to each separated clips. Make sure that files should have numbers, like "audio-001.wav", "audio-002.wav", "audio-003.wav". Place these wave files to the directory `./orig`.
 2. Build BLIS and Whisper, and download Whisper model with `./01_build.bash`.
