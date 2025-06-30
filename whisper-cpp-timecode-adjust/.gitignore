@@ -2,3 +2,4 @@ bin
 blis
 whisper.cpp
 orig
+out.json
