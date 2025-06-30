@@ -12,4 +12,4 @@ def from_timecode(tc: tuple[int, int, int, float]):
     return h * 3600 + m * 60 + s + x
 
 def print_timecode(tc: tuple[int, int, int, float]):
-    print("≫≫≫{}時間{}分{}秒.{}".format(tc[0], tc[1], tc[2], int(tc[3] * 1000)))
+    print("≫≫≫{}hour{}min{}sec.{}".format(tc[0], tc[1], tc[2], int(tc[3] * 1000)))
